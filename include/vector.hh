@@ -1,7 +1,9 @@
 #pragma once
 
 #include "size.hh"
+#include "matrix.hh"
 #include <iostream>
+#include <math.h>
 
 class Vector {
 
@@ -15,17 +17,24 @@ public:
 
     Vector(double [SIZE]);
 
-    Vector operator + (const Vector &v);
+    Vector operator + (const Vector &v) const;
 
-    Vector operator - (const Vector &v);
+    Vector operator - (const Vector &v) const;
 
-    Vector operator * (const double &tmp);
+    Vector operator * (const double &tmp) const;
 
-    Vector operator / (const double &tmp);
+    Vector operator / (const double &tmp) const;
 
+    friend Vector operator * (Matrix m1, Vector tmp);           // Operator mnożenia przez wektor
+
+    friend bool operator == (Vector vec1, Vector vec2);
     const double &operator [] (int index) const;
 
     double &operator [] (int index);
+
+    Vector rotacja(const double &kat) const;
+
+    double dl_boku () const;
 
 };
 
@@ -71,10 +80,10 @@ Vector::Vector(double tmp[SIZE]) {
  |      Sume dwoch skladnikow przekazanych jako wskaznik                      |
  |      na parametr.                                                          |
  */
-Vector Vector::operator + (const Vector &v) {
+Vector Vector::operator + (const Vector &v) const{
     Vector result;
     for (int i = 0; i < SIZE; i++) {
-        result[i] = size[i] += v[i];
+        result[i] = size[i] + v[i];
     }
     return result;
 }
@@ -89,10 +98,10 @@ Vector Vector::operator + (const Vector &v) {
  |      Roznice dwoch skladnikow przekazanych jako wskaznik                   |
  |      na parametr.                                                          |
  */
-Vector Vector::operator - (const Vector &v) {
+Vector Vector::operator - (const Vector &v) const {
     Vector result;
     for (int i = 0; i < SIZE; i++) {
-        result[i] = size[i] -= v[i];
+        result[i] = size[i] - v[i];
     }
     return result;
 }
@@ -108,10 +117,10 @@ Vector Vector::operator - (const Vector &v) {
  |      na parametr.                                                          |
  */
 
-Vector Vector::operator * (const double &tmp) {
+Vector Vector::operator * (const double &tmp) const {
     Vector result;
     for (int i = 0; i < SIZE; i++) {
-        result[i] = size[i] *= tmp;
+        result[i] = size[i] * tmp;
     }
     return result;
 }
@@ -127,7 +136,7 @@ Vector Vector::operator * (const double &tmp) {
  |      na parametr.                                                          |
  */
 
-Vector Vector::operator / (const double &tmp) {
+Vector Vector::operator / (const double &tmp)const{
     Vector result;
 
     for (int i = 0; i < SIZE; i++) {
@@ -147,7 +156,7 @@ Vector Vector::operator / (const double &tmp) {
  */
 const double &Vector::operator [] (int index) const {
     if (index < 0 || index >= SIZE) {
-        std::cerr << "Error: Wektor jest poza zasiegiem!" << std::endl;
+        throw std::out_of_range("Error: Wektor jest poza zasiegiem!" );
     }
     return size[index];
 }
@@ -173,9 +182,20 @@ double &Vector::operator[](int index) {
  */
 std::ostream &operator << (std::ostream &out, Vector const &tmp) {
     for (int i = 0; i < SIZE; i++) {
-        out << "[ " << tmp[i] << " ]\n";
+        out << tmp[i] << " ";
     }
     return out;
+}
+bool operator == (Vector vec1, Vector vec2)
+{
+    for(int i = 0; i< SIZE;i++)
+    {
+        if (abs(vec1[i] - vec2[i]) >MIN)
+        {   
+            return false;
+        }
+    }
+    return true; 
 }
 
 
@@ -191,4 +211,52 @@ std::istream &operator >> (std::istream &in, Vector &tmp) {
     }
     std::cout << std::endl;
     return in;
+}
+
+Vector Vector::rotacja(const double &kat) const
+{
+    Vector obrocony;
+
+    double kat_radiany = (M_PI *(kat) )/180;
+    if (SIZE == 2)
+    {
+        double zmienna[][SIZE] = {{cos(kat_radiany), -sin(kat_radiany)}, {sin(kat_radiany), cos(kat_radiany)}};
+        Matrix zmieniony(zmienna);
+        obrocony = zmieniony * *this;
+    }
+    else
+    {
+        throw std::out_of_range("blad!.");
+    }
+    
+    return obrocony;
+}
+
+/******************************************************************************
+ |  Realizuje mnozenie macierzy przez wektor.                                 |
+ |  Argumenty:                                                                |
+ |      this - macierz, czyli pierwszy skladnik mnozenia,                     |
+ |      v - wektor, czyli drugi skladnik mnozenia.                            |
+ |  Zwraca:                                                                   |
+ |      Iloczyn dwoch skladnikow przekazanych jako wektor.                    |
+ */
+
+Vector operator * (Matrix m1, Vector tmp) {
+    Vector result;
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            result[i] += m1(i,j) * tmp[j];
+        }
+    }
+    return result;
+}
+
+double Vector::dl_boku() const
+{
+    double dlugosc = 0;
+    for (int i= 0;i<SIZE; i++)
+    {
+        dlugosc += pow(size[i], 2);
+    }
+    return sqrt(dlugosc);
 }

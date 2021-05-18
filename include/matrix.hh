@@ -1,9 +1,9 @@
 #pragma once
 
-#include "size.hh"
-#include "vector.hh"
 #include <iostream>
 #include <cstdlib>
+
+#define MIN 0.0000000001
 
 class Matrix {
 
@@ -15,11 +15,11 @@ public:
 
     Matrix();                               // Konstruktor klasy
 
-    Vector operator * (Vector tmp);           // Operator mnożenia przez wektor
-
     Matrix operator + (Matrix tmp);
 
     double  &operator () (unsigned int row, unsigned int column);
+
+    friend bool operator == (Matrix mat1, Matrix mat2);
     
     const double &operator () (unsigned int row, unsigned int column) const;
 };
@@ -58,27 +58,6 @@ Matrix::Matrix(double tmp[SIZE][SIZE]) {
         }
     }
 }
-
-
-/******************************************************************************
- |  Realizuje mnozenie macierzy przez wektor.                                 |
- |  Argumenty:                                                                |
- |      this - macierz, czyli pierwszy skladnik mnozenia,                     |
- |      v - wektor, czyli drugi skladnik mnozenia.                            |
- |  Zwraca:                                                                   |
- |      Iloczyn dwoch skladnikow przekazanych jako wektor.                    |
- */
-
-Vector Matrix::operator * (Vector tmp) {
-    Vector result;
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            result[i] += value[i][j] * tmp[j];
-        }
-    }
-    return result;
-}
-
 
 /******************************************************************************
  |  Funktor macierzy                                                          |
@@ -177,3 +156,18 @@ std::ostream &operator<<(std::ostream &out, const Matrix &mat) {
     return out;
 }
 
+bool operator == (Matrix mat1, Matrix mat2)
+{
+    for (int i=0 ; i <SIZE ;i++)
+    {
+        for (int j=0 ; j <SIZE ;j++)
+        {
+            if (abs(mat1(i,j) - mat2(i,j)) > MIN)
+            {   
+                return false;
+            }
+        
+        }
+    }
+    return true;
+}
